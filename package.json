@@ -2,7 +2,7 @@
   "name": "@ptomulik/github-list-releases-action",
   "version": "0.2.0",
   "description": "GitHub action to retrieve releases from a remote repository",
-  "main": "lib/main.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "jest",
     "test-coverage": "jest --coverage",

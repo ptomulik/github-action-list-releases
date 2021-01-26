@@ -1,97 +1,84 @@
-import { Release } from "../src/types";
+import { Entry as RestEntry } from "./rest";
 
-type Entry = Partial<Release>;
+export type Entry = Partial<RestEntry>;
 
-type MakeFilterParameter<T> =
-  T extends string
-  ? string | RegExp
-  : T extends boolean
-  ? boolean :
-  undefined;
-
-type MakeFilterParameters<E> = {
-  [K in keyof E]: MakeFilterParameter<E[K]>
+export interface Parameters {
+  draft?: boolean | null;
+  name?: string | RegExp | null;
+  prerelease?: boolean | null;
+  tag_name?: string | RegExp | null;
 }
 
-export type FilterParametrers = MakeFilterParameters<Entry>;
-
-/*
-export type FilterableProperty = "draft" | "name" | "prerelease" | "tag_name";
-
-export const filterableProperties: FilterableProperty[] = [
-  "draft",
-  "name",
-  "prerelease",
-  "tag_name",
-];
-
-export interface FilterParameters {
-  name?: string|RegExp;
-  tag_name?: string|RegExp;
-  draft?: boolean;
-  prerelease?: boolean;
+export interface Filter {
+  from: (entries: Entry[]) => Entry[];
 }
 
-interface TestFuncInterface {
-  (entry: Entry): boolean
+export function filter(parameters: Parameters): Filter {
+  const predicate = callback(parameters);
+  return { from: (entries: Entry[]): Entry[] => entries.filter(predicate) };
 }
 
-interface ComparatorInterface {
-  (value: string, expect: string | RegExp): boolean;
-  (value: any, expect: any): boolean;
+type Callback = Predicate;
+
+function callback(parameters: Parameters): Callback {
+  return compose(predicates(parameters));
 }
 
-function match(value: string | null, expect: string | RegExp): boolean {
-  if (expect instanceof RegExp) {
-    return value != null ? expect.test(value) : false;
+interface Predicate {
+  (entry: Entry): boolean;
+}
+
+interface Constraint {
+  (actual: unknown): boolean;
+}
+
+function match(expected: RegExp): Constraint {
+  return (actual: unknown): boolean =>
+    typeof actual === "string" && expected.test(actual);
+}
+
+function same(expected: unknown): Constraint {
+  return (actual: unknown): boolean => actual === expected;
+}
+
+function constraint<E>(expected: E): Constraint {
+  if (expected instanceof RegExp) {
+    return match(expected);
   } else {
-    return value === expect;
+    return same(expected);
   }
 }
 
-function same(value: any, expect: any): boolean {
-  return value === expect;
-}
+function predicates(parameters: Parameters): Predicate[] {
+  const predicates: Predicate[] = [];
 
-const comparators: Record<FilterableProperty, ComparatorInterface> = {
-  draft: same,
-  name: match,
-  prerelease: same,
-  tag_name: match,
-};
+  function predicate<A, E>(
+    select: (entry: Entry) => A,
+    expected: E
+  ): Predicate {
+    const feasible = constraint(expected);
+    return (entry: Entry): boolean => feasible(select(entry));
+  }
 
-function makeTestFuncs(parameters: FilterParameters): TestFuncInterface[] {
-  const tests: TestFuncInterface[] = [];
-  for (let key of filterableProperties) {
-    if (parameters[key] != null) {
-      const parameter = parameters[key];
-      const comparator = comparators[key];
-      tests.push((entry: Entry): boolean => comparator(entry[key], parameter));
+  function compares<A, E>(
+    select: (entry: Entry) => A,
+    expected?: E | null
+  ): void {
+    if (expected != null) {
+      predicates.push(predicate(select, expected));
     }
   }
-  return tests;
+
+  compares((e: Entry) => e.draft, parameters.draft);
+  compares((e: Entry) => e.name, parameters.name);
+  compares((e: Entry) => e.prerelease, parameters.prerelease);
+  compares((e: Entry) => e.tag_name, parameters.tag_name);
+  return predicates;
 }
 
-export class Filter {
-  tests: TestFuncInterface[];
-
-  constructor(parameters: FilterParameters) {
-    this.tests = makeTestFuncs(parameters);
-  }
-
-  get callback(): TestFuncInterface {
-    return (entry: Entry): boolean => (
-      this.tests.reduce(
-        (result: boolean, test: TestFuncInterface) => result && test(entry),
-        true
-      )
-    );
-  }
-
-  filter(entries: Entry[]): Entry[] {
-    return entries.filter(this.callback)
-  }
+function compose(predicates: Predicate[]): Predicate {
+  return (entry: Entry): boolean =>
+    predicates.every((predicate: Predicate): boolean => predicate(entry));
 }
-*/
 
 // vim: set ts=2 sw=2 sts=2:
