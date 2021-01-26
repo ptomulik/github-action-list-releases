@@ -53,7 +53,7 @@ jobs:
                   jq '' <<'!'
                   ${{ steps.v0latest.outputs.json }}
                   !
-                  if [ '${{ steps.v0latest.outputs.count }}' -ne 1  ]; then
+                  if [ '${{ steps.v0latest.outputs.count }}' != '1'  ]; then
                     echo 'count: ${{ steps.v0latest.outputs.count }} != 1';
                     false;
                   fi
