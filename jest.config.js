@@ -9,11 +9,4 @@ module.exports = {
         lines: 100
       }
   },
-//  collectCoverageFrom: [
-//    '**/*.js',
-//    '!**/*.config.js',
-//    '!dist/**',
-//    '!coverage/**',
-//    '!**/node_modules/**',
-//  ],
 }

@@ -12,7 +12,7 @@ describe(".filter", () => {
     function callback([parameters, entries, output]: Case): Adjusted {
       const params = JSON.stringify(parameters, replacer);
       const ents = JSON.stringify(entries, replacer);
-      const title = `.filter(${params}).from(${ents})`;
+      const title = `.filter(${params}).apply(${ents})`;
       return [title, parameters, entries, output];
     }
     return cases.map(callback);
@@ -136,7 +136,7 @@ describe(".filter", () => {
     (_: string, params: Parameters, entries: Entry[], output: Entry[]) => {
       it(`returns ${JSON.stringify(output)}`, () => {
         expect.assertions(1);
-        expect(filter(params).from(entries)).toStrictEqual(output);
+        expect(filter(params).apply(entries)).toStrictEqual(output);
       });
     }
   );

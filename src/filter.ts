@@ -10,12 +10,12 @@ export interface Parameters {
 }
 
 export interface Filter {
-  from: (entries: Entry[]) => Entry[];
+  apply: (entries: Entry[]) => Entry[];
 }
 
 export function filter(parameters: Parameters): Filter {
   const predicate = callback(parameters);
-  return { from: (entries: Entry[]): Entry[] => entries.filter(predicate) };
+  return { apply: (entries: Entry[]): Entry[] => entries.filter(predicate) };
 }
 
 type Callback = Predicate;
