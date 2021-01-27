@@ -1,27 +1,23 @@
 import { Entry as RestEntry } from "./rest";
+import { ArrayMapper } from "./mapper";
 
 export type Entry = Partial<RestEntry>;
 
-export interface Parameters {
+export interface Options {
   draft?: boolean | null;
   name?: string | RegExp | null;
   prerelease?: boolean | null;
   tag_name?: string | RegExp | null;
 }
 
-export interface Filter {
-  apply: (entries: Entry[]) => Entry[];
-}
+export type Filter = ArrayMapper<Entry>;
 
-export function filter(parameters: Parameters): Filter {
-  const predicate = callback(parameters);
-  return { apply: (entries: Entry[]): Entry[] => entries.filter(predicate) };
-}
-
-type Callback = Predicate;
-
-function callback(parameters: Parameters): Callback {
-  return compose(predicates(parameters));
+export function filter(options?: Options | null): Filter {
+  if (options == null) {
+    return (entries: Entry[]): Entry[] => entries;
+  }
+  const predicate = callback(options);
+  return (entries: Entry[]): Entry[] => entries.filter(predicate);
 }
 
 interface Predicate {
@@ -30,6 +26,10 @@ interface Predicate {
 
 interface Constraint {
   (actual: unknown): boolean;
+}
+
+function callback(options: Options): Predicate {
+  return compose(predicates(options));
 }
 
 function match(expected: RegExp): Constraint {
@@ -49,7 +49,7 @@ function constraint<E>(expected: E): Constraint {
   }
 }
 
-function predicates(parameters: Parameters): Predicate[] {
+function predicates(options: Options): Predicate[] {
   const predicates: Predicate[] = [];
 
   function predicate<A, E>(
@@ -69,10 +69,10 @@ function predicates(parameters: Parameters): Predicate[] {
     }
   }
 
-  compares((e: Entry) => e.draft, parameters.draft);
-  compares((e: Entry) => e.name, parameters.name);
-  compares((e: Entry) => e.prerelease, parameters.prerelease);
-  compares((e: Entry) => e.tag_name, parameters.tag_name);
+  compares((e: Entry) => e.draft, options.draft);
+  compares((e: Entry) => e.name, options.name);
+  compares((e: Entry) => e.prerelease, options.prerelease);
+  compares((e: Entry) => e.tag_name, options.tag_name);
   return predicates;
 }
 

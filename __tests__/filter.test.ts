@@ -1,49 +1,49 @@
-import { filter, Parameters, Entry } from "../src/filter";
-
-function replacer(name: string, value: unknown): unknown {
-  return value instanceof RegExp ? value.toString() : value;
-}
+import { filter, Entry } from "../src/filter";
+import { repr, entitleMapperCases } from "./util";
 
 describe(".filter", () => {
-  type Case = [Parameters, Entry[], Entry[]];
-  type Adjusted = [string, Parameters, Entry[], Entry[]];
-
-  function adjust(cases: Case[]): Adjusted[] {
-    function callback([parameters, entries, output]: Case): Adjusted {
-      const params = JSON.stringify(parameters, replacer);
-      const ents = JSON.stringify(entries, replacer);
-      const title = `.filter(${params}).apply(${ents})`;
-      return [title, parameters, entries, output];
-    }
-    return cases.map(callback);
-  }
-
+  type Args = Parameters<typeof filter>;
   describe.each(
-    adjust([
-      [{}, [{ name: "foo" }], [{ name: "foo" }]],
+    entitleMapperCases(".filter", [
       [
-        { name: null },
+        [{}],
+        [{ name: "foo" }],
+        [{ name: "foo" }]
+      ],
+      [
+        [{ name: null }],
         [{ name: "a" }, { name: "b" }],
         [{ name: "a" }, { name: "b" }],
       ],
-      [{ name: "foo" }, [{ name: "foo" }, { name: "bar" }], [{ name: "foo" }]],
       [
-        { name: /^v?\d+\.\d+.\d+$/ },
+        [{ name: "foo" }],
+        [{ name: "foo" }, { name: "bar" }],
+        [{ name: "foo" }],
+      ],
+      [
+        [{ name: /^v?\d+\.\d+.\d+$/ }],
         [
           { name: "latest" },
           { name: "v1.0.0" },
           { name: "v1.1.0" },
           { name: "1.2.0" },
         ],
-        [{ name: "v1.0.0" }, { name: "v1.1.0" }, { name: "1.2.0" }],
+        [
+          { name: "v1.0.0" },
+          { name: "v1.1.0" },
+          { name: "1.2.0" }
+        ],
       ],
       [
-        { tag_name: "foo" },
-        [{ tag_name: "foo" }, { tag_name: "bar" }],
+        [{ tag_name: "foo" }],
+        [
+          { tag_name: "foo" },
+          { tag_name: "bar" }
+        ],
         [{ tag_name: "foo" }],
       ],
       [
-        { tag_name: /^v?\d+\.\d+.\d+$/ },
+        [{ tag_name: /^v?\d+\.\d+.\d+$/ }],
         [
           { tag_name: "latest" },
           { tag_name: "v1.0.0" },
@@ -53,7 +53,7 @@ describe(".filter", () => {
         [{ tag_name: "v1.0.0" }, { tag_name: "v1.1.0" }, { tag_name: "1.2.0" }],
       ],
       [
-        { draft: false },
+        [{ draft: false }],
         [
           { name: "draft", draft: true },
           { name: "non-draft", draft: false },
@@ -61,7 +61,7 @@ describe(".filter", () => {
         [{ name: "non-draft", draft: false }],
       ],
       [
-        { draft: true },
+        [{ draft: true }],
         [
           { name: "draft", draft: true },
           { name: "non-draft", draft: false },
@@ -69,7 +69,7 @@ describe(".filter", () => {
         [{ name: "draft", draft: true }],
       ],
       [
-        { prerelease: false },
+        [{ prerelease: false }],
         [
           { name: "prerelease", prerelease: true },
           { name: "non-prerelease", prerelease: false },
@@ -77,7 +77,7 @@ describe(".filter", () => {
         [{ name: "non-prerelease", prerelease: false }],
       ],
       [
-        { prerelease: true },
+        [{ prerelease: true }],
         [
           { name: "prerelease", prerelease: true },
           { name: "non-prerelease", prerelease: false },
@@ -85,7 +85,7 @@ describe(".filter", () => {
         [{ name: "prerelease", prerelease: true }],
       ],
       [
-        { name: /^v?\d+\.\d+.\d+$/, draft: false },
+        [{ name: /^v?\d+\.\d+.\d+$/, draft: false }],
         [
           { name: "latest", draft: false },
           { name: "v1.0.0", draft: false },
@@ -98,7 +98,7 @@ describe(".filter", () => {
         ],
       ],
       [
-        { name: /^v?\d+\.\d+.\d+$/, draft: true },
+        [{ name: /^v?\d+\.\d+.\d+$/, draft: true }],
         [
           { name: "latest", draft: false },
           { name: "v1.0.0", draft: false },
@@ -108,7 +108,7 @@ describe(".filter", () => {
         [{ name: "1.2.0", draft: true }],
       ],
       [
-        { tag_name: /^v?\d+\.\d+.\d+$/, prerelease: false },
+        [{ tag_name: /^v?\d+\.\d+.\d+$/, prerelease: false }],
         [
           { tag_name: "latest", prerelease: false },
           { tag_name: "v1.0.0", prerelease: false },
@@ -121,7 +121,7 @@ describe(".filter", () => {
         ],
       ],
       [
-        { tag_name: /^v?\d+\.\d+.\d+$/, prerelease: true },
+        [{ tag_name: /^v?\d+\.\d+.\d+$/, prerelease: true }],
         [
           { tag_name: "latest", prerelease: false },
           { tag_name: "v1.0.0", prerelease: false },
@@ -131,15 +131,14 @@ describe(".filter", () => {
         [{ tag_name: "1.2.0", prerelease: true }],
       ],
     ])
-  )(
-    "%s",
-    (_: string, params: Parameters, entries: Entry[], output: Entry[]) => {
-      it(`returns ${JSON.stringify(output)}`, () => {
-        expect.assertions(1);
-        expect(filter(params).apply(entries)).toStrictEqual(output);
-      });
-    }
-  );
+  )("%s", (_, args, entries, output) => {
+    it(`returns ${repr(output)}`, () => {
+      expect.assertions(1);
+      expect(
+        filter(...(args as Args))(entries as Entry[])
+      ).toStrictEqual(output);
+    });
+  });
 });
 
 // vim: set ts=2 sw=2 sts=2:

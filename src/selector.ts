@@ -1,29 +1,26 @@
 import { Entry as RestEntry } from "./rest";
+import { ArrayMapper } from "./mapper";
 
 export type Entry = Partial<RestEntry>;
 export type Selectable = keyof Entry;
-export type Parameter = Selectable[] | null | undefined;
+export type Selector = ArrayMapper<Entry>;
 
-export interface Selector {
-  from: (entries: Entry[]) => Entry[];
-}
-
-export function select(keys: Parameter): Selector {
+export function selector(keys?: Selectable[] | null): Selector {
   const mapper = callback(keys);
-  return { from: (entries: Entry[]): Entry[] => entries.map(mapper) };
+  return (entries: Entry[]): Entry[] => entries.map(mapper);
 }
 
 interface Callback {
   (entry: Entry): Entry;
 }
 
-function callback(keys: Parameter): Callback {
+function callback(keys?: Selectable[] | null): Callback {
   if (keys == null) {
     return (entry: Entry): Entry => entry;
   } else {
     return (entry: Entry): Entry =>
       keys
-        .filter((key: Selectable) => key in entry)
+        .filter((key) => key in entry)
         .reduce(
           (obj: Entry, key: Selectable): Entry => ({
             ...obj,
