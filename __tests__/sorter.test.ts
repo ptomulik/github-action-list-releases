@@ -315,6 +315,32 @@ describe(".sorter", () => {
           { id: 1 },
         ],
       ],
+
+      // pathologies
+
+      [
+        [['foo', 'bar']],
+        [ { id: 1 }, { id: 2 } ],
+        [ { id: 1 }, { id: 2 } ],
+      ],
+
+      [
+        ['foo'],
+        [ { id: 1 }, { id: 2 } ],
+        [ { id: 1 }, { id: 2 } ],
+      ],
+
+      [
+        [123],
+        [ { id: 1 }, { id: 2 } ],
+        [ { id: 1 }, { id: 2 } ],
+      ],
+
+      [
+        [{}],
+        [ { id: 1 }, { id: 2 } ],
+        [ { id: 1 }, { id: 2 } ],
+      ],
     ])
   )("%s", (_, args, entries, output) => {
     it(`returns ${repr(output)}`, () => {

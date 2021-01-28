@@ -6,6 +6,21 @@ describe(".filter", () => {
   describe.each(
     entitleMapperCases(".filter", [
       [
+        [],
+        [{ name: "foo" }],
+        [{ name: "foo" }],
+      ],
+      [
+        [null],
+        [{ name: "foo" }],
+        [{ name: "foo" }],
+      ],
+      [
+        [undefined],
+        [{ name: "foo" }],
+        [{ name: "foo" }],
+      ],
+      [
         [{}],
         [{ name: "foo" }],
         [{ name: "foo" }]
@@ -129,6 +144,24 @@ describe(".filter", () => {
           { tag_name: "1.2.0", prerelease: true },
         ],
         [{ tag_name: "1.2.0", prerelease: true }],
+      ],
+
+      // pathologies
+
+      [
+        ['foo'],
+        [ { id: 1 }, { id: 2}],
+        [ { id: 1 }, { id: 2}],
+      ],
+      [
+        [1],
+        [ { id: 1 }, { id: 2}],
+        [ { id: 1 }, { id: 2}],
+      ],
+      [
+        [[]],
+        [ { id: 1 }, { id: 2}],
+        [ { id: 1 }, { id: 2}],
       ],
     ])
   )("%s", (_, args, entries, output) => {

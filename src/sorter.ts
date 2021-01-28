@@ -48,7 +48,7 @@ export type Parameters = Parameter[];
 export type Sorter = ArrayMapper<Entry>;
 
 export function sorter(specs?: Parameters | null, order?: Order): Sorter {
-  if (specs == null) {
+  if (!(specs instanceof Array)) {
     return (entries: Entry[]): Entry[] => entries;
   }
 

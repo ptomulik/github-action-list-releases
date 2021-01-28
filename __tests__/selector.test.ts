@@ -6,6 +6,7 @@ describe(".selector", () => {
 
   describe.each(
     entitleMapperCases(".selector", [
+      [[], [{ name: "foo", id: 1234 }], [{ name: "foo", id: 1234 }]],
       [[null], [{ name: "foo", id: 1234 }], [{ name: "foo", id: 1234 }]],
       [[undefined], [{ name: "foo", id: 1234 }], [{ name: "foo", id: 1234 }]],
       [
@@ -37,6 +38,14 @@ describe(".selector", () => {
         ],
         [{ id: 1234 }, { id: 1235 }],
       ],
+
+      [[[]], [{ name: "foo", id: 1234 }], [{}]],
+
+      // pathologies ....
+
+      [['foo'], [{ name: "foo", id: 1234 }], [{ name: "foo", id: 1234 }]],
+      [[123], [{ name: "foo", id: 1234 }], [{ name: "foo", id: 1234 }]],
+      [[{}], [{ name: "foo", id: 1234 }], [{ name: "foo", id: 1234 }]],
     ])
   )("%s", (_, args, entries, output) => {
       it(`returns ${repr(output)}`, () => {
